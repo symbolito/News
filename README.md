@@ -4,6 +4,18 @@ Sistema IoT que integra un ESP32 con un display OLED y servicios en la nube para
 
 ---
 
+## 🚦 Fases del Proyecto
+
+| Fase | Descripción | Estado |
+|------|-------------|--------|
+| **Fase 1** | **Integración y prueba de hardware**: ESP32 + OLED, WiFi, NewsAPI | ✅ Completo |
+| **Fase 2** | **Interfaz y robustez**: Mejoras visuales, manejo de errores, estadísticas | ✅ Completo |
+| **Fase 3** | **Conexión cloud**: Envío de datos y telemetría a ThingSpeak | ✅ Completo |
+| **Fase 4** | **Control remoto**: Recepción y ejecución de comandos desde la nube | ✅ Completo |
+| **Fase 5** | **Documentación**: Manual de usuario, instalación, diagramas y README | ✅ Completo |
+
+---
+
 ## 🚀 Descripción
 
 Este proyecto corresponde a un taller universitario de **Computación en la Nube**. El sistema permite visualizar titulares de noticias en un display OLED, obtenidos desde NewsAPI, y enviar estadísticas y estado del dispositivo a la nube usando ThingSpeak. Además, permite recibir comandos remotos desde la nube para controlar la categoría, país o frecuencia de actualización de las noticias, entre otras funciones.
@@ -153,23 +165,68 @@ El ESP32 verifica y ejecuta comandos cada 30 segundos.
 
 ---
 
-## 🛡️ Seguridad y Buenas Prácticas
+## ❗ Errores Comunes y Soluciones
 
-- **NO subas** tu archivo `config.h` con credenciales a GitHub.
-- Usa `.gitignore` para proteger tus claves.
-- Cambia tus claves si el repositorio es público después de hacer pruebas.
-- Puedes compartir `config.h.example` SIN tus datos reales.
+### Error: El display no muestra información
 
----
+**Síntoma:**  
+- El monitor serial indica todo "OK", pero el display OLED no muestra nada.
 
-## 📝 Problemas y Soluciones
+**Causas y soluciones:**
+- El display SSD1306 está configurado para SPI (7 pines); si usas I2C (4 pines), necesitas adaptar el código y conexiones.
+- Verifica que los pines físicos coincidan con los definidos en el código.
+- Asegúrate de conectar VCC a 3.3V y GND a GND.
+- Si el display sigue sin mostrar, revisa el voltaje y prueba otro display.
 
-- **No conecta a WiFi:** Verifica SSID y clave. Usa solo redes 2.4GHz.
-- **Display en blanco:** Verifica conexiones y voltaje (3.3V), revisa que tu display sea SPI.
-- **No llegan datos a ThingSpeak:** Respeta el límite de 15s entre actualizaciones y revisa tu Write API Key.
-- **Comandos no se ejecutan:** Verifica TalkBack ID/API Key y la sintaxis exacta de comandos.
+### Error: No se pueden subir programas al ESP32
 
-Más detalles en [docs/troubleshooting.md](docs/troubleshooting.md).
+**Síntoma:**  
+```
+A fatal error occurred: Failed to connect to ESP32: No serial data received.
+```
+**Soluciones:**
+- Presiona y mantén el botón **BOOT** en el ESP32 justo cuando empiece la subida y hasta que diga "Writing at 0x...".
+- Cierra el Serial Monitor antes de subir.
+- Usa un cable USB de datos (no solo de carga).
+- Verifica el puerto en `platformio.ini` con `upload_port = COM5` (o el puerto correcto).
+- Cambia la velocidad de subida: `upload_speed = 115200`.
+
+### Error: No aparecen noticias en el display
+
+**Síntoma:**  
+- El serial muestra "No se encontraron noticias" o el JSON recibido tiene `"totalResults":0`.
+
+**Soluciones:**
+- Cambia el país y/o categoría en tu `config.h` a una combinación que tenga noticias (ej: `us` y `technology`).
+- Prueba primero con NewsAPI en navegador.
+- Si la API key es incorrecta o hay límite, revisa el código de respuesta (401 = API key incorrecta, 429 = límite excedido).
+
+### Error: ThingSpeak responde con "0" (update rejected)
+
+**Síntoma:**
+- El serial muestra `Respuesta: 0` al enviar datos a ThingSpeak.
+
+**Soluciones:**
+- Respeta el límite de 15 segundos entre actualizaciones en cuentas gratis.
+- Verifica que tu Write API Key y Channel ID sean correctos.
+- Asegúrate que los 8 campos estén habilitados en tu canal de ThingSpeak.
+
+### Error: "multiple definition" al compilar
+
+**Síntoma:**  
+```
+multiple definition of `WIFI_SSID'; ...
+```
+**Solución:**
+- Sólo debe haber un archivo `.cpp` con funciones `setup()` y `loop()` en `/src` al compilar. Elimina o comenta otros archivos de prueba (`test_*.cpp`).
+
+### Error: Comandos TalkBack no se ejecutan
+
+**Síntoma:**  
+- Agregas varios comandos a la vez y todos se ejecutan uno tras otro.
+
+**Solución:**
+- TalkBack funciona como una *cola* FIFO. Para pruebas controladas, agrega los comandos uno por uno y espera a que el ESP32 ejecute cada uno antes de agregar el siguiente.
 
 ---
 
@@ -183,10 +240,6 @@ Más detalles en [docs/troubleshooting.md](docs/troubleshooting.md).
 
 ---
 
-## 🤝 Contribuciones
-
-¡Pull requests y issues son bienvenidos!  
-Por favor, no incluyas información sensible en tus contribuciones.
 
 ---
 
@@ -194,7 +247,7 @@ Por favor, no incluyas información sensible en tus contribuciones.
 
 - **ZundyTor**
 - **Proyecto para Computación en la Nube**
-- Universidad: [Tu Universidad]
+- Universidad: Fundacion Universitaria Los Libertadores
 - Octubre 2024
 
 ---
@@ -215,5 +268,3 @@ Ver archivo [LICENSE](LICENSE) para más detalles.
 - Comunidad de PlatformIO
 
 ---
-
-> Proyecto desarrollado como parte del taller universitario de Computación en la Nube.
